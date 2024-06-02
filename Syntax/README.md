@@ -2,4 +2,4 @@
 
 ## 関数を式のように書けるメリット
 
-## switch文と switch式
+## switch文とswitch式の比較
