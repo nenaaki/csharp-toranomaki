@@ -101,3 +101,102 @@ private class GetDataAsyncStateMachine : IAsyncStateMachine
 ```
 
 このように、`async` / `await` を使用することで、非同期プログラミングの複雑さを隠し、シンプルで直感的なコードを書けるようにするための強力なツールを提供します。コンパイラが状態マシンを生成してくれるため、開発者はその内部の複雑さを意識することなく非同期処理を実装できます。
+
+### `async` / `await` で `void` を返すべきではない理由と例外
+
+#### 理由
+
+1. **エラーハンドリングの難しさ**:
+   - `void` を返す `async` メソッドは、呼び出し元がエラーをキャッチすることができません。例外がスローされても、呼び出し元で適切に処理できないため、エラーの追跡とデバッグが困難になります。
+   - `Task` または `Task<T>` を返す `async` メソッドでは、`await` によって例外が呼び出し元に伝播し、適切にキャッチおよび処理できます。
+
+2. **非同期プログラミングの一貫性**:
+   - 非同期メソッドが `void` を返すと、他の非同期メソッドと一貫性が取れなくなります。通常、非同期メソッドは `Task` または `Task<T>` を返すため、特別なケースを扱う必要が出てきます。
+
+3. **コールバックの扱い**:
+   - `Task` または `Task<T>` を返す非同期メソッドでは、メソッドの完了を待つことができ、続けて実行するアクションを簡単に設定できます。`void` を返す場合、このような操作が難しくなります。
+
+#### 例外
+
+1. **イベントハンドラー**:
+   - イベントハンドラーは `void` を返すことが求められるため、`async void` メソッドが使われます。これらはデリゲートで定義され、戻り値が `void` であることが前提となっています。
+   - 例外は `TaskScheduler.UnobservedTaskException` イベントでキャッチされるか、アプリケーションのデフォルトの例外処理によって処理されます。
+
+```csharp
+public class Example
+{
+    public event EventHandler MyEvent;
+
+    public async void OnMyEvent()
+    {
+        // 非同期に何かを実行
+        await Task.Delay(1000);
+        Console.WriteLine("Event triggered");
+    }
+
+    public void RaiseEvent()
+    {
+        MyEvent?.Invoke(this, EventArgs.Empty);
+    }
+}
+```
+
+2. **トップレベルのエントリポイント**:
+    - C# 7.1 からは、`Main` メソッドで `async Task` がサポートされるようになりましたが、それ以前はエントリポイントは `void` でなければなりませんでした。その場合、非同期処理を行うために `async void` が使われることがありました。
+
+```csharp
+public class Program
+{
+    public static async Task Main(string[] args)
+    {
+        await RunAsync();
+    }
+
+    private static async Task RunAsync()
+    {
+        await Task.Delay(1000);
+        Console.WriteLine("Hello, world!");
+    }
+}
+```
+3. WPF の `ICommand.Execute` メソッド:
+    - WPF でコマンドを実装する場合、`ICommand.Execute` メソッドのシグネチャは `void` です。非同期処理を行うために、`async void` を使用することがあります。
+    - この場合でも、エラーハンドリングが難しくなるため、非同期処理を内部で `Task` に委譲し、適切にエラーハンドリングを行うことが推奨されます。
+
+```csharp
+public class AsyncCommand : ICommand
+{
+    public event EventHandler CanExecuteChanged;
+
+    public bool CanExecute(object parameter) => true;
+
+    public async void Execute(object parameter)
+    {
+        try
+        {
+            await ExecuteAsync(parameter);
+        }
+        catch (Exception ex)
+        {
+            // エラーハンドリング
+            Console.WriteLine(ex);
+        }
+    }
+
+    private Task ExecuteAsync(object parameter)
+    {
+        // 非同期処理
+        return Task.Delay(1000);
+    }
+}
+```
+
+### まとめ
+
+1. 推奨される方法:
+
+    - 非同期メソッドは、基本的に `Task` または `Task<T>` を返すべきです。これにより、エラーハンドリングが簡単になり、一貫した非同期プログラミングが可能になります。
+
+1. 例外的なケース:
+
+    - イベントハンドラーや特定のエントリポイント、WPF の `ICommand.Execute` などでは `async void` を使用する必要がありますが、これらは例外的なケースであり、通常のメソッドでは避けるべきです。
