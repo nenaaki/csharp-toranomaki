@@ -57,7 +57,6 @@
      - [コンストラクター内の例外](.//workspaces/csharp-toranomaki/非推奨/コンストラクター内の例外.md)
      - [ジェネリッククラスの静的初期化](.//workspaces/csharp-toranomaki/非推奨/ジェネリッククラスの静的初期化.md)
      - [リフレクションを避ける](.//workspaces/csharp-toranomaki/非推奨/リフレクションを避ける.md)
- - [links](.//workspaces/csharp-toranomaki/links.md)
  - [エラー検出](.//workspaces/csharp-toranomaki/エラー検出.md)
  - [オブジェクト指向プログラミングのすすめ](.//workspaces/csharp-toranomaki/オブジェクト指向プログラミングのすすめ.md)
  - [コンパクトなコードのすすめ](.//workspaces/csharp-toranomaki/コンパクトなコードのすすめ.md)
