@@ -24,11 +24,11 @@ function Generate-MarkdownLinks {
         }
 
         # インデントを生成
-        $indent = " " * ($IndentLevel * 4)
+        $indent = " " * ($IndentLevel * 3)
 
         if ($item.PSIsContainer) {
             # ディレクトリの場合、そのディレクトリ名を出力し、再帰的に処理
-            $LinksArray.Value += "$indent- **$($item.Name)**`n"
+            $LinksArray.Value += $indent + "`n1. **$($item.Name)**"
             Generate-MarkdownLinks -Path $item.FullName -IndentLevel ($IndentLevel + 1) -LinksArray $LinksArray
         } else {
             # ファイルの場合、拡張子が .md でない場合はスキップ
@@ -37,7 +37,7 @@ function Generate-MarkdownLinks {
             }
             # ファイルの場合、拡張子を除去してMarkdownリンクを生成して出力
             $fileNameWithoutExtension = [System.IO.Path]::GetFileNameWithoutExtension($item.Name)
-            $LinksArray.Value += "$indent- [$fileNameWithoutExtension](./$($item.FullName))`n"
+            $LinksArray.Value += "`n$indent- [$fileNameWithoutExtension](./$($item.FullName))"
         }
     }
 }
@@ -54,4 +54,4 @@ $linksArray = @()
 Generate-MarkdownLinks -Path ".\" -LinksArray ([ref]$linksArray)
 
 # ヘッダー、リンクリスト、フッターを結合して出力ファイルに保存
-$headerContent + $linksArray + $footerContent | Set-Content -Path $outputFile -NoNewline
+$headerContent + $linksArray + "`n" + $footerContent | Set-Content -Path $outputFile -NoNewline
